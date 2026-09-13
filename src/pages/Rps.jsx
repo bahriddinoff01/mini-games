@@ -2,7 +2,7 @@ import React from 'react'
 
 const Rps = () => {
   return (
-    <div>rps</div>
+    <div></div>
   )
 }
 
