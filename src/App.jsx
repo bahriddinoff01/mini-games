@@ -4,7 +4,7 @@ import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import Todo from './pages/Todo'
 import GuessNumber from './pages/GuessNumber'
-import Rps from './pages/rps'
+import Rps from './pages/Rps'
 
 
 function App() {
