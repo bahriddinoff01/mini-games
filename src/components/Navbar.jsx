@@ -3,7 +3,7 @@ import React from 'react'
 const Navbar = () => {
   return (
     <>
-        <nav className='flex justify-between px-10 py-4 items-center border-b-2 shadow-2xl'>
+        <nav className='flex justify-between px-10 top-0 bg-white z-1 sticky w-full py-4 items-center border-b-2 shadow-2xl'>
             <h1 className="text-2xl font-bold">Mini Games</h1>
             <div className="flex justify-center items-center gap-15">
                 <div className="hidden list-parent text-xl md:flex justify-center items-center gap-10">
