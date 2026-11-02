@@ -11,6 +11,9 @@ import Memory from "./pages/Memory"
 import Reaction from "./pages/Reaction"
 import Typing from "./pages/Typing"
 import WhackAMole from "./pages/WhackAMole"
+import Auth from "./pages/Auth"
+import Leaderboard from "./pages/Leaderboard"
+import Profile from "./pages/Profile"
 import NotFound from "./pages/NotFound"
 
 function App() {
@@ -29,6 +32,10 @@ function App() {
           <Route path="/reaction" element={<Reaction />} />
           <Route path="/typing" element={<Typing />} />
           <Route path="/whack-a-mole" element={<WhackAMole />} />
+          <Route path="/login" element={<Auth mode="login" key="login" />} />
+          <Route path="/signup" element={<Auth mode="signup" key="signup" />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

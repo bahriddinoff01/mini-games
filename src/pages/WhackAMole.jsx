@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import GameLayout, { Banner, Stat } from "../components/GameLayout"
+import GameLayout, { Banner, SaveNote, Stat } from "../components/GameLayout"
 import useBestScore from "../hooks/useBestScore"
+import useSaveScore from "../hooks/useSaveScore"
+import { useI18n } from "../i18n"
 
 const DURATION = 30
 const HOLES = 9
 
 const WhackAMole = () => {
+  const { t } = useI18n()
   const [status, setStatus] = useState("idle") // idle | playing | over
   const [timeLeft, setTimeLeft] = useState(DURATION)
   const [score, setScore] = useState(0)
@@ -14,13 +17,13 @@ const WhackAMole = () => {
   const [hit, setHit] = useState(null)
   const [newRecord, setNewRecord] = useState(false)
   const [best, submitBest] = useBestScore("whack")
-
+  const { status: saveStatus, save, clear } = useSaveScore("whack-a-mole")
   const scoreRef = useRef(0)
 
   // Countdown, one tick per second. The last tick ends the game.
   useEffect(() => {
     if (status !== "playing") return
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       if (timeLeft > 1) {
         setTimeLeft(timeLeft - 1)
         return
@@ -29,15 +32,16 @@ const WhackAMole = () => {
       setStatus("over")
       setMole(null)
       setNewRecord(submitBest(scoreRef.current))
+      if (scoreRef.current > 0) save(scoreRef.current)
     }, 1000)
-    return () => clearTimeout(t)
-  }, [status, timeLeft, submitBest])
+    return () => clearTimeout(timer)
+  }, [status, timeLeft, submitBest, save])
 
   // Move the mole. It gets faster as time runs out.
   useEffect(() => {
     if (status !== "playing") return
     const speed = 450 + (timeLeft / DURATION) * 550
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       setMole((m) => {
         let hole
         do hole = Math.floor(Math.random() * HOLES)
@@ -45,7 +49,7 @@ const WhackAMole = () => {
         return { hole, key: Date.now() }
       })
     }, speed)
-    return () => clearTimeout(t)
+    return () => clearTimeout(timer)
   }, [status, mole, timeLeft])
 
   const start = () => {
@@ -54,6 +58,7 @@ const WhackAMole = () => {
     setTimeLeft(DURATION)
     setMole(null)
     setNewRecord(false)
+    clear()
     setStatus("playing")
   }
 
@@ -67,16 +72,16 @@ const WhackAMole = () => {
   }
 
   return (
-    <GameLayout icon="🔨" title="Whack-a-Mole" subtitle={`Hit as many moles as you can in ${DURATION} seconds.`}>
+    <GameLayout icon="🔨" title={t("games.whack-a-mole.title")} subtitle={t("whack.subtitle", { n: DURATION })}>
       <div className="mb-4 grid grid-cols-3 gap-3">
-        <Stat label="Score" value={score} accent />
-        <Stat label="Time" value={`${timeLeft}s`} />
-        <Stat label="Best" value={best ?? "—"} />
+        <Stat label={t("common.score")} value={score} accent />
+        <Stat label={t("common.time")} value={`${timeLeft}s`} />
+        <Stat label={t("common.best")} value={best ?? "—"} />
       </div>
 
       <div className="panel p-4 sm:p-6">
         {/* time bar */}
-        <div className="mb-5 h-2 overflow-hidden rounded-full bg-slate-100">
+        <div className="mb-5 h-2 overflow-hidden rounded-full bg-subtle">
           <div
             className={`h-full rounded-full transition-all duration-1000 ease-linear ${timeLeft <= 5 ? "bg-lose" : "bg-brand-500"}`}
             style={{ width: `${(timeLeft / DURATION) * 100}%` }}
@@ -92,12 +97,12 @@ const WhackAMole = () => {
                 e.preventDefault()
                 whack(i)
               }}
-              aria-label={`Hole ${i + 1}`}
+              aria-label={t("whack.hole", { n: i + 1 })}
               className={`relative aspect-square overflow-hidden rounded-full border-4 transition-colors ${
-                hit === i ? "border-win bg-win-soft" : "border-slate-200 bg-slate-100"
+                hit === i ? "border-win bg-win-soft" : "border-line bg-subtle"
               }`}
             >
-              <div className="absolute inset-x-3 bottom-2 h-1/4 rounded-full bg-slate-300/60" />
+              <div className="absolute inset-x-3 bottom-2 h-1/4 rounded-full bg-line" />
               <AnimatePresence>
                 {mole?.hole === i && (
                   <motion.span
@@ -120,12 +125,14 @@ const WhackAMole = () => {
           {status === "over" && (
             <div className="mb-4">
               <Banner tone="win">
-                Time's up! You hit {score} {score === 1 ? "mole" : "moles"}.{newRecord && " 🏆 New best!"}
+                {t("whack.over", { n: score })}
+                {newRecord && ` 🏆 ${t("common.newBest")}`}
               </Banner>
+              <SaveNote status={saveStatus} />
             </div>
           )}
           <button onClick={start} disabled={status === "playing"} className="btn-primary w-full">
-            {status === "idle" ? "Start game" : status === "playing" ? "Go go go!" : "Play again"}
+            {status === "idle" ? t("whack.start") : status === "playing" ? t("whack.going") : t("common.playAgain")}
           </button>
         </div>
       </div>

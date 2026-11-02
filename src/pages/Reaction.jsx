@@ -1,21 +1,25 @@
 import { useEffect, useRef, useState } from "react"
-import GameLayout, { Stat } from "../components/GameLayout"
+import GameLayout, { SaveNote, Stat } from "../components/GameLayout"
 import useBestScore, { lowerIsBetter } from "../hooks/useBestScore"
+import useSaveScore from "../hooks/useSaveScore"
+import { useI18n } from "../i18n"
 
 // idle → waiting (red) → go (green) → result, or "early" if clicked too soon.
 const screens = {
-  idle: { bg: "bg-ink", title: "Click to start", text: "When the box turns green, click as fast as you can." },
-  waiting: { bg: "bg-lose", title: "Wait for green…", text: "Don't click yet!" },
-  go: { bg: "bg-win", title: "CLICK!", text: "" },
-  early: { bg: "bg-warn", title: "Too soon!", text: "Click to try again." },
-  result: { bg: "bg-brand-600", title: "", text: "Click to go again." },
+  idle: { bg: "bg-ink", title: "reaction.idleTitle", text: "reaction.idleText" },
+  waiting: { bg: "bg-lose", title: "reaction.waitTitle", text: "reaction.waitText" },
+  go: { bg: "bg-win", title: "reaction.goTitle", text: null },
+  early: { bg: "bg-warn", title: "reaction.earlyTitle", text: "reaction.earlyText" },
+  result: { bg: "bg-brand-500", title: null, text: "reaction.resultText" },
 }
 
 const Reaction = () => {
+  const { t } = useI18n()
   const [state, setState] = useState("idle")
   const [last, setLast] = useState(null)
   const [results, setResults] = useState([])
   const [best, submitBest] = useBestScore("reaction", lowerIsBetter)
+  const { status: saveStatus, save } = useSaveScore("reaction")
   const startTime = useRef(0)
   const timer = useRef(null)
 
@@ -32,6 +36,7 @@ const Reaction = () => {
       setLast(ms)
       setResults((r) => [ms, ...r].slice(0, 5))
       submitBest(ms)
+      save(ms)
       setState("result")
       return
     }
@@ -46,38 +51,43 @@ const Reaction = () => {
 
   const average = results.length ? Math.round(results.reduce((a, b) => a + b, 0) / results.length) : null
   const screen = screens[state]
+  const ms = (v) => t("units.ms", { v })
 
   return (
-    <GameLayout icon="⚡" title="Reaction Time" subtitle="Test how fast your reflexes are.">
+    <GameLayout icon="⚡" title={t("games.reaction.title")} subtitle={t("reaction.subtitle")}>
       <div className="mb-4 grid grid-cols-3 gap-3">
-        <Stat label="Last" value={last ? `${last} ms` : "—"} accent />
-        <Stat label="Average" value={average ? `${average} ms` : "—"} />
-        <Stat label="Best" value={best ? `${best} ms` : "—"} />
+        <Stat label={t("reaction.last")} value={last ? ms(last) : "—"} accent />
+        <Stat label={t("reaction.average")} value={average ? ms(average) : "—"} />
+        <Stat label={t("common.best")} value={best ? ms(best) : "—"} />
       </div>
 
       <button
         onMouseDown={handleClick}
-        onKeyDown={(e) => (e.key === " " || e.key === "Enter") && (e.preventDefault(), handleClick())}
+        onKeyDown={(e) => {
+          if (e.key === " " || e.key === "Enter") {
+            e.preventDefault()
+            handleClick()
+          }
+        }}
         className={`flex h-72 w-full select-none flex-col items-center justify-center rounded-2xl px-6 text-center text-white shadow-sm transition-colors duration-150 sm:h-80 ${screen.bg}`}
       >
-        <span className="text-4xl font-extrabold sm:text-5xl">
-          {state === "result" ? `${last} ms` : screen.title}
-        </span>
-        {screen.text && <span className="mt-3 text-white/80">{screen.text}</span>}
+        <span className="text-4xl font-extrabold sm:text-5xl">{state === "result" ? ms(last) : t(screen.title)}</span>
+        {screen.text && <span className="mt-3 text-white/80">{t(screen.text)}</span>}
       </button>
+      {state === "result" && <SaveNote status={saveStatus} />}
 
       {results.length > 0 && (
         <div className="panel mt-4 p-4">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500">Last {results.length} tries</h2>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted">{t("reaction.lastTries")}</h2>
           <div className="flex flex-wrap gap-2">
-            {results.map((ms, i) => (
+            {results.map((v, i) => (
               <span
                 key={i}
                 className={`rounded-lg px-3 py-1 text-sm font-medium tabular-nums ${
-                  ms === best ? "bg-win-soft text-emerald-800" : "bg-slate-100 text-slate-700"
+                  v === best ? "bg-win-soft text-win-fg" : "bg-subtle text-fg"
                 }`}
               >
-                {ms} ms
+                {ms(v)}
               </span>
             ))}
           </div>

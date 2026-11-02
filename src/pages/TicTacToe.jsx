@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
-import GameLayout, { Banner, Stat } from "../components/GameLayout"
+import GameLayout, { Banner, SaveNote, Stat } from "../components/GameLayout"
+import Segmented from "../components/Segmented"
+import { useI18n } from "../i18n"
+import useSaveScore from "../hooks/useSaveScore"
 
 const LINES = [
   [0, 1, 2], [3, 4, 5], [6, 7, 8],
@@ -36,30 +39,16 @@ const computerMove = (board, level) => {
   return minimax(board, true).index
 }
 
-const Toggle = ({ options, value, onChange }) => (
-  <div className="flex gap-1 rounded-xl bg-slate-100 p-1">
-    {options.map(([id, label]) => (
-      <button
-        key={id}
-        onClick={() => onChange(id)}
-        className={`flex-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-          value === id ? "bg-white text-brand-700 shadow-sm" : "text-slate-500 hover:text-ink"
-        }`}
-      >
-        {label}
-      </button>
-    ))}
-  </div>
-)
-
 const emptyBoard = () => Array(9).fill(null)
 
 const TicTacToe = () => {
+  const { t } = useI18n()
   const [board, setBoard] = useState(emptyBoard)
   const [xTurn, setXTurn] = useState(true)
   const [mode, setMode] = useState("cpu") // cpu | friend
   const [level, setLevel] = useState("hard")
   const [score, setScore] = useState({ X: 0, O: 0, draw: 0 })
+  const { status: saveStatus, save, clear } = useSaveScore("tic-tac-toe")
 
   const result = getWinner(board)
   const cpuTurn = mode === "cpu" && !xTurn && !result
@@ -72,18 +61,21 @@ const TicTacToe = () => {
     setXTurn(!xTurn)
     const r = getWinner(next)
     if (r) setScore((s) => ({ ...s, [r.player]: s[r.player] + 1 }))
+    // Only wins against the computer count for the leaderboard.
+    if (r?.player === "X" && mode === "cpu") save(1)
   }
 
   // Let the computer play after a short pause.
   useEffect(() => {
     if (!cpuTurn) return
-    const t = setTimeout(() => place(computerMove(board, level)), 450)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => place(computerMove(board, level)), 450)
+    return () => clearTimeout(timer)
   })
 
   const newRound = () => {
     setBoard(emptyBoard())
     setXTurn(true)
+    clear()
   }
 
   const changeMode = (m) => {
@@ -92,45 +84,52 @@ const TicTacToe = () => {
     newRound()
   }
 
-  const oName = mode === "cpu" ? "Computer" : "Player O"
-  const xName = mode === "cpu" ? "You" : "Player X"
+  const xName = mode === "cpu" ? t("common.you") : t("ttt.playerX")
+  const oName = mode === "cpu" ? t("common.computer") : t("ttt.playerO")
 
   let message
-  if (result?.player === "draw") message = <Banner tone="warn">It's a draw!</Banner>
-  else if (result) {
-    const won = result.player === "X" || mode === "friend"
-    const who = result.player === "X" ? xName : oName
-    message = <Banner tone={won ? "win" : "lose"}>{who === "You" ? "You won" : `${who} won`} this round!</Banner>
+  if (result?.player === "draw") {
+    message = <Banner tone="warn">{t("ttt.draw")}</Banner>
+  } else if (result) {
+    if (mode === "cpu") {
+      message =
+        result.player === "X" ? <Banner tone="win">{t("ttt.youWon")}</Banner> : <Banner tone="lose">{t("ttt.cpuWon")}</Banner>
+    } else {
+      message = <Banner tone="win">{t("ttt.playerWon", { name: result.player === "X" ? xName : oName })}</Banner>
+    }
   } else {
-    const turnText = cpuTurn
-      ? "Computer is thinking…"
-      : mode === "cpu"
-        ? "Your turn (X)"
-        : `${xTurn ? xName : oName}'s turn`
-    message = <Banner>{turnText}</Banner>
+    const text = cpuTurn ? t("ttt.thinking") : mode === "cpu" ? t("ttt.yourTurn") : t("ttt.turnOf", { name: xTurn ? xName : oName })
+    message = <Banner>{text}</Banner>
   }
 
   return (
-    <GameLayout icon="⭕" title="Tic-Tac-Toe" subtitle="Get three in a row to win.">
+    <GameLayout icon="⭕" title={t("games.tic-tac-toe.title")} subtitle={t("ttt.subtitle")}>
       <div className="mb-4 flex flex-col gap-2 sm:flex-row">
-        <div className="flex-1">
-          <Toggle options={[["cpu", "vs Computer"], ["friend", "vs Friend"]]} value={mode} onChange={changeMode} />
-        </div>
+        <Segmented
+          className="flex-1"
+          options={[["cpu", t("ttt.vsComputer")], ["friend", t("ttt.vsFriend")]]}
+          value={mode}
+          onChange={changeMode}
+        />
         {mode === "cpu" && (
-          <div className="flex-1">
-            <Toggle options={[["easy", "Easy"], ["hard", "Hard"]]} value={level} onChange={setLevel} />
-          </div>
+          <Segmented
+            className="flex-1"
+            options={[["easy", t("ttt.easy")], ["hard", t("ttt.hard")]]}
+            value={level}
+            onChange={setLevel}
+          />
         )}
       </div>
 
       <div className="mb-4 grid grid-cols-3 gap-3">
         <Stat label={xName} value={score.X} accent />
-        <Stat label="Draws" value={score.draw} />
+        <Stat label={t("common.draws")} value={score.draw} />
         <Stat label={oName} value={score.O} />
       </div>
 
       <div className="panel p-4 sm:p-6">
         {message}
+        {result?.player === "X" && mode === "cpu" && <SaveNote status={saveStatus} />}
         <div className="mx-auto mt-5 grid max-w-xs grid-cols-3 gap-2 sm:max-w-sm sm:gap-3">
           {board.map((cell, i) => {
             const inLine = result?.line.includes(i)
@@ -139,11 +138,11 @@ const TicTacToe = () => {
                 key={i}
                 onClick={() => !cpuTurn && place(i)}
                 disabled={!!cell || !!result || cpuTurn}
-                aria-label={`Square ${i + 1}${cell ? `, ${cell}` : ""}`}
+                aria-label={`${t("ttt.square", { n: i + 1 })}${cell ? `, ${cell}` : ""}`}
                 className={`flex aspect-square items-center justify-center rounded-2xl border-2 text-5xl font-extrabold transition-colors sm:text-6xl ${
                   inLine
                     ? "border-win bg-win-soft"
-                    : "border-slate-200 bg-slate-50 enabled:hover:border-brand-400 enabled:hover:bg-brand-50"
+                    : "border-line bg-canvas enabled:hover:border-brand-400 enabled:hover:bg-brand-50"
                 }`}
               >
                 {cell && (
@@ -151,7 +150,7 @@ const TicTacToe = () => {
                     initial={{ scale: 0, rotate: -30 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ type: "spring", stiffness: 400, damping: 18 }}
-                    className={cell === "X" ? "text-ink" : "text-brand-600"}
+                    className={cell === "X" ? "text-fg" : "text-brand-600"}
                   >
                     {cell}
                   </motion.span>
@@ -161,7 +160,7 @@ const TicTacToe = () => {
           })}
         </div>
         <button onClick={newRound} className="btn-primary mt-6 w-full">
-          {result ? "Next round" : "Restart round"}
+          {result ? t("ttt.nextRound") : t("ttt.restartRound")}
         </button>
       </div>
     </GameLayout>

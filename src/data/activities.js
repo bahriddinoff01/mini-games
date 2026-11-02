@@ -1,67 +1,20 @@
-// Every game on the site. To add a new one: add an entry here and a route in App.jsx.
+// Every activity on the site. Titles and descriptions live in src/i18n/*.js under games.<id>.
+// To add a game: add an entry here, a route in App.jsx, texts in every language file,
+// and (if it has a leaderboard) a rule in supabase/schema.sql.
+//
+// scoring.kind: "best" = each player's best single result, "wins" = total wins
+// scoring.lower: true when a smaller number is better
+// scoring.unit:  key in i18n "units"
 export const activities = [
-  {
-    id: "todo",
-    title: "To-Do List",
-    category: "Productivity",
-    icon: "📝",
-    description: "Keep track of your daily tasks. Tasks are saved in your browser, so they're still here next time.",
-    path: "/todo",
-  },
-  {
-    id: "guess-number",
-    title: "Guess the Number",
-    category: "Logic",
-    icon: "🔢",
-    description: "The computer picks a number from 1 to 1000. Find it in 7 tries using the higher / lower hints.",
-    path: "/guess-number",
-  },
-  {
-    id: "rps",
-    title: "Rock Paper Scissors",
-    category: "Classic",
-    icon: "✊",
-    description: "The classic hand game against the computer. First to 5 points wins the match.",
-    path: "/rps",
-  },
-  {
-    id: "tic-tac-toe",
-    title: "Tic-Tac-Toe",
-    category: "Strategy",
-    icon: "⭕",
-    description: "Get three in a row. Play against a friend on the same device, or challenge the computer.",
-    path: "/tic-tac-toe",
-  },
-  {
-    id: "memory",
-    title: "Memory Match",
-    category: "Puzzle",
-    icon: "🧠",
-    description: "Flip the cards and find all the matching pairs in as few moves as you can.",
-    path: "/memory",
-  },
-  {
-    id: "reaction",
-    title: "Reaction Time",
-    category: "Reflex",
-    icon: "⚡",
-    description: "Wait for the screen to turn green, then click as fast as you can. How quick are you?",
-    path: "/reaction",
-  },
-  {
-    id: "typing",
-    title: "Typing Speed",
-    category: "Skill",
-    icon: "⌨️",
-    description: "Type the sentence as quickly and accurately as you can and see your words per minute.",
-    path: "/typing",
-  },
-  {
-    id: "whack-a-mole",
-    title: "Whack-a-Mole",
-    category: "Reflex",
-    icon: "🔨",
-    description: "Moles pop up at random. Hit as many as you can before the 30-second timer runs out.",
-    path: "/whack-a-mole",
-  },
+  { id: "todo", icon: "📝", path: "/todo", scoring: null },
+  { id: "guess-number", icon: "🔢", path: "/guess-number", scoring: { kind: "best", lower: true, unit: "tries" } },
+  { id: "rps", icon: "✊", path: "/rps", scoring: { kind: "wins", unit: "wins" } },
+  { id: "tic-tac-toe", icon: "⭕", path: "/tic-tac-toe", scoring: { kind: "wins", unit: "wins" } },
+  { id: "memory", icon: "🧠", path: "/memory", scoring: { kind: "best", lower: true, unit: "moves" } },
+  { id: "reaction", icon: "⚡", path: "/reaction", scoring: { kind: "best", lower: true, unit: "ms" } },
+  { id: "typing", icon: "⌨️", path: "/typing", scoring: { kind: "best", lower: false, unit: "wpm" } },
+  { id: "whack-a-mole", icon: "🔨", path: "/whack-a-mole", scoring: { kind: "best", lower: false, unit: "points" } },
 ]
+
+export const rankedGames = activities.filter((a) => a.scoring)
+export const findGame = (id) => activities.find((a) => a.id === id)

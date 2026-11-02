@@ -7,7 +7,18 @@
     <title>Mini Arcade</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet" />
+    <script>
+      // Apply saved theme and language before the page draws (avoids a light flash in dark mode).
+      try {
+        var theme = localStorage.getItem("mini-arcade-theme")
+        if (theme === "dark" || (!theme && matchMedia("(prefers-color-scheme: dark)").matches)) {
+          document.documentElement.classList.add("dark")
+        }
+        var lang = localStorage.getItem("mini-arcade-lang")
+        if (lang) document.documentElement.lang = lang
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

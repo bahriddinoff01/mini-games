@@ -1,16 +1,47 @@
-# React + Vite
+# Mini Arcade
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A collection of 8 small browser games (plus a to-do list) with accounts, a global leaderboard,
+dark mode and 4 languages (O'zbekcha, 한국어, English, Русский).
 
-Currently, two official plugins are available:
+Built with React, Vite, Tailwind CSS, Framer Motion and Supabase.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Run locally
 
-## React Compiler
+```bash
+npm install
+npm run dev
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The games work without any setup. Accounts and the leaderboard need Supabase (below).
 
-## Expanding the ESLint configuration
+## Connect accounts and the leaderboard (Supabase)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+1. Create a free project at [supabase.com](https://supabase.com).
+2. In the project, open **SQL Editor → New query**, paste everything from
+   [`supabase/schema.sql`](supabase/schema.sql) and click **Run**.
+3. Open **Project Settings → API** and copy the **Project URL** and the **anon / publishable** key.
+4. Copy `.env.example` to `.env.local` and paste the two values in.
+   Never use the `service_role` / secret key in this app.
+5. In **Authentication → URL Configuration**, set **Site URL** to your live site address and add
+   `http://localhost:5173/**` under **Redirect URLs** (used by the email confirmation link).
+6. Restart `npm run dev`.
+
+When deploying, add the same two `VITE_SUPABASE_…` variables in your hosting provider's settings.
+
+### How user data is protected
+
+- Emails and passwords are handled by Supabase Auth. Passwords are hashed; emails are never sent
+  to other players. The leaderboard only shows usernames.
+- Row Level Security is enabled on every table: players can only add results for their own
+  account, and nobody can edit or delete other people's data.
+- Scores are range-checked and rate-limited on the server to make fake scores harder.
+- Players can delete their account and all their results from the **My results** page.
+
+## Project structure
+
+- `src/pages` — one file per game, plus login / sign-up, leaderboard and profile
+- `src/components` — shared layout, navbar, cards
+- `src/i18n` — translations (`en.js`, `uz.js`, `ko.js`, `ru.js`)
+- `src/index.css` — color tokens (light and dark) and shared styles
+- `src/data/activities.js` — the list of games and how each one is scored
+- `supabase/schema.sql` — database tables and security rules
