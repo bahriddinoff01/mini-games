@@ -1,33 +1,32 @@
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
 
-const ActivityCard = ({ path, title, image, description }) => {
+const ActivityCard = ({ path, title, icon, category, description, index = 0 }) => {
   return (
     <motion.div
-      className="card border rounded-lg overflow-hidden bg-white"
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 1, ease: "easeOut" }}
-      whileHover={{ y: -6, boxShadow: "0px 12px 24px rgba(0,0,0,0.08)" }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.45, ease: "easeOut", delay: (index % 4) * 0.06 }}
+      whileHover={{ y: -6 }}
+      className="h-full"
     >
-      <img
-        src={image}
-        alt="an img of the game"
-        className="w-full h-64 object-cover rounded-t-lg"
-      />
-      <div className="p-4">
-        <h1 className="text-2xl text-center font-bold">{title}</h1>
-        <p className="text-sm text-gray-600 mt-2">{description}</p>
-        <Link to={path}>
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.95 }}
-            className="w-full mt-4 py-2 rounded-lg border bg-gray-900 text-white hover:bg-white hover:text-black transition-colors duration-200"
-          >
-            Play
-          </motion.button>
-        </Link>
-      </div>
+      <Link
+        to={path}
+        className="group panel flex h-full flex-col overflow-hidden transition-shadow hover:shadow-xl hover:shadow-brand-600/10"
+      >
+        <div className="relative flex h-40 items-center justify-center bg-linear-to-br from-brand-50 to-brand-100">
+          <span className="text-6xl transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
+            {icon}
+          </span>
+          <span className="chip absolute left-3 top-3 bg-white/80">{category}</span>
+        </div>
+        <div className="flex flex-1 flex-col p-5">
+          <h3 className="text-xl font-bold">{title}</h3>
+          <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">{description}</p>
+          <span className="btn-primary mt-5 w-full py-2.5 group-hover:bg-brand-600">Play</span>
+        </div>
+      </Link>
     </motion.div>
   )
 }

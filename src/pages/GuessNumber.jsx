@@ -1,128 +1,141 @@
-import React, { useRef } from 'react'
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useRef, useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import GameLayout, { Banner, Stat } from "../components/GameLayout"
+
+const MAX = 1000
+const TRIES = 7
+const randomNumber = () => Math.floor(Math.random() * MAX) + 1
 
 const GuessNumber = () => {
-  const [targetNumber, setTargetNumber] = useState(()=>Math.floor(Math.random()*1000) +1)
+  const [target, setTarget] = useState(randomNumber)
   const [guess, setGuess] = useState("")
-  const [attemptsLeft, setAttemptsLeft] = useState(7)
-  const [message, setMessage] = useState("")
-  const [gameOver, setGameOver] = useState(false)
-  const [guessHistory, setGuessHistory] = useState([])
+  const [history, setHistory] = useState([])
+  const [error, setError] = useState("")
+  const [status, setStatus] = useState("playing") // playing | won | lost
+  const [range, setRange] = useState({ low: 1, high: MAX })
   const inputRef = useRef(null)
-  const handleGuess = () => {
-    const numericGuess = parseInt(guess)
-    const newAttemptsLeft = attemptsLeft - 1
-    setAttemptsLeft(newAttemptsLeft)
-    let justWon = false
-    if (targetNumber == numericGuess) {
-      const newEntry = { id: Date.now(), guess: numericGuess, feedback: "You got it" }
-      setGuessHistory([...guessHistory, newEntry])
-      setGuess("")
-      justWon = true
-      setGameOver(true)
-    }
-    else if(targetNumber > numericGuess) {
-      const newEntry = { id: Date.now(), guess: numericGuess, feedback: "Try higher value" }
-      setGuessHistory([...guessHistory, newEntry])
-      setGuess("")
-    }
-    else if (targetNumber < numericGuess){
-      const newEntry = { id: Date.now(), guess: numericGuess, feedback: "Try lower value" }
-      setGuessHistory([...guessHistory, newEntry])
-      setGuess("")
-    }
-  
-    if(newAttemptsLeft == 0 && justWon == false){
-      const newEntry = { id: Date.now(), guess: numericGuess, feedback: `Game over. The number was ${targetNumber}` }
-      setGuessHistory([...guessHistory, newEntry])
-      setGuess("")
-      setGameOver(true)
-    }
-    inputRef.current.focus()
-  }
-  const handleReset = () =>{
-    setTargetNumber(Math.floor(Math.random () *1000 ) +1)
-    setGuess("")
-    setAttemptsLeft(7)
-    setGameOver(false)
-    setGuessHistory([])
-  }
-  return (
-    <div className="min-h-screen flex justify-center items-start pt-24 px-4 bg-gray-50">
-      <div className="w-full max-w-md">
-        <h1 className="text-3xl font-bold text-center text-gray-900 mb-2">
-          Guess the Number
-        </h1>
-        <p className="text-center text-gray-500 mb-6">
-          You have {attemptsLeft} tries left.
-        </p>
 
-        <div className="flex gap-5 mb-6">
+  const attemptsLeft = TRIES - history.length
+  const gameOver = status !== "playing"
+
+  const handleGuess = () => {
+    const n = Number(guess)
+    // Invalid input does not cost a try.
+    if (guess.trim() === "" || !Number.isInteger(n) || n < 1 || n > MAX) {
+      setError(`Enter a whole number from 1 to ${MAX}.`)
+      return
+    }
+    if (history.some((h) => h.guess === n)) {
+      setError(`You already tried ${n}.`)
+      return
+    }
+    setError("")
+
+    let feedback
+    if (n === target) {
+      feedback = "Correct!"
+      setStatus("won")
+    } else if (n < target) {
+      feedback = "Higher ↑"
+      setRange((r) => ({ ...r, low: Math.max(r.low, n + 1) }))
+    } else {
+      feedback = "Lower ↓"
+      setRange((r) => ({ ...r, high: Math.min(r.high, n - 1) }))
+    }
+
+    const newHistory = [{ id: Date.now(), guess: n, feedback }, ...history]
+    setHistory(newHistory)
+    setGuess("")
+    if (n !== target && newHistory.length >= TRIES) setStatus("lost")
+    inputRef.current?.focus()
+  }
+
+  const handleReset = () => {
+    setTarget(randomNumber())
+    setGuess("")
+    setHistory([])
+    setError("")
+    setStatus("playing")
+    setRange({ low: 1, high: MAX })
+    inputRef.current?.focus()
+  }
+
+  return (
+    <GameLayout icon="🔢" title="Guess the Number" subtitle={`I'm thinking of a number from 1 to ${MAX}.`}>
+      <div className="mb-4 grid grid-cols-2 gap-3">
+        <Stat label="Tries left" value={attemptsLeft} accent />
+        <Stat label="Range" value={`${range.low}–${range.high}`} />
+      </div>
+
+      <div className="panel p-4 sm:p-6">
+        <form
+          noValidate
+          className="flex flex-col gap-2 sm:flex-row"
+          onSubmit={(e) => {
+            e.preventDefault()
+            handleGuess()
+          }}
+        >
           <input
             ref={inputRef}
-            type="text"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={MAX}
             value={guess}
-            onChange={(e)=> setGuess(e.target.value)}
-            placeholder='Guess a number'
-            className='flex-1 px-4 py-3 rounded-xl border border-gray-200 shadow-sm outline-none focus:ring-2 focus:ring-gray-900 transition-all'
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleGuess()
-              }
-            }}
+            onChange={(e) => setGuess(e.target.value)}
+            placeholder="Your guess"
+            className="input flex-1"
             disabled={gameOver}
+            autoFocus
           />
-          <div className="flex gap-5">
-             <button
-            onClick={handleGuess}
-            className="px-5 py-3 rounded-xl bg-gray-900 text-white font-medium hover:bg-gray-800 active:scale-95 transition-all"
-            disabled={gameOver}
-          >
-            Guess
-          </button>
-           <button
-            onClick={handleReset}
-            className="px-5 py-3 rounded-xl bg-gray-900 text-white font-medium hover:bg-gray-800 active:scale-95 transition-all"
-            
-          >
-            Reset
-          </button>
+          <div className="flex gap-2">
+            <button type="submit" className="btn-primary flex-1" disabled={gameOver}>Guess</button>
+            <button type="button" onClick={handleReset} className="btn-secondary flex-1">Reset</button>
           </div>
+        </form>
+
+        {error && <p className="mt-2 text-sm text-lose">{error}</p>}
+
+        <div className="mt-4 empty:hidden">
+          {status === "won" && (
+            <Banner tone="win">
+              🎉 You got it in {history.length} {history.length === 1 ? "try" : "tries"}! The number was {target}.
+            </Banner>
+          )}
+          {status === "lost" && <Banner tone="lose">Out of tries. The number was {target}.</Banner>}
         </div>
 
-        <div className="flex flex-col gap-3">
-          <AnimatePresence>
-            {guessHistory.map((entry, index) => {
-              const isLatest = index === guessHistory.length - 1
-              return (
-                <motion.div
-                  key={entry.id}
-                  layout
-                  initial={isLatest ? { opacity: 0, y: -10, scale: 0.95 } : false}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                  className={`flex items-center justify-between rounded-xl border px-4 py-3 shadow-sm ${
-                    isLatest
-                      ? "bg-gray-900 text-white border-gray-900"
-                      : "bg-white text-gray-700 border-gray-200"
+        <ul className="mt-4 flex flex-col gap-2">
+          <AnimatePresence initial={false}>
+            {history.map((entry, i) => (
+              <motion.li
+                key={entry.id}
+                layout
+                initial={{ opacity: 0, y: -10, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                className={`flex items-center justify-between rounded-xl border px-4 py-3 ${
+                  i === 0 ? "border-ink bg-ink text-white" : "border-slate-200 bg-slate-50"
+                }`}
+              >
+                <span className="font-semibold tabular-nums">{entry.guess}</span>
+                <span
+                  className={`text-sm font-medium ${
+                    entry.feedback === "Correct!" ? "text-win" : i === 0 ? "text-brand-300" : "text-slate-500"
                   }`}
                 >
-                  <span className="font-medium">{entry.guess}</span>
-                  <span className="text-sm">{entry.feedback}</span>
-                </motion.div>
-              )
-            })}
+                  {entry.feedback}
+                </span>
+              </motion.li>
+            ))}
           </AnimatePresence>
+        </ul>
 
-          {guessHistory.length === 0 && (
-            <p className="text-center text-gray-400 mt-8">
-              Make your first guess above.
-            </p>
-          )}
-        </div>
+        {history.length === 0 && (
+          <p className="mt-6 text-center text-slate-400">Make your first guess above.</p>
+        )}
       </div>
-    </div>
+    </GameLayout>
   )
 }
 

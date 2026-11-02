@@ -1,10 +1,67 @@
-import todoimg from '../assets/todoimg.jpg'
-import guess from '../assets/guess.jpg'
-import rps from '../assets/rps.jpg'
-
+// Every game on the site. To add a new one: add an entry here and a route in App.jsx.
 export const activities = [
-  { id: "todo", title: "To-Do List", description: "Keep track of your daily tasks. Be efficient in orginizing your habits. Use beutiful designs for free and play useful games at the same time", image: todoimg, path: "/Todo" },
-  { id: "guess-number", title: "Guess the Number", description: "Guess the number from 1–1000 in 7 tries. Computer thinks of a number from a range you choose and gives you tries to find the number.", image: guess, path: "/GuessNumber" },
-  { id: "rps", title: "Rock Paper Scissors", description: "Classic game against the computer. Spend your time efficient when noone is around. Enjoy rock, paper, scissors game against our ai", image: rps, path: "/rps" },
-  
-];
+  {
+    id: "todo",
+    title: "To-Do List",
+    category: "Productivity",
+    icon: "📝",
+    description: "Keep track of your daily tasks. Tasks are saved in your browser, so they're still here next time.",
+    path: "/todo",
+  },
+  {
+    id: "guess-number",
+    title: "Guess the Number",
+    category: "Logic",
+    icon: "🔢",
+    description: "The computer picks a number from 1 to 1000. Find it in 7 tries using the higher / lower hints.",
+    path: "/guess-number",
+  },
+  {
+    id: "rps",
+    title: "Rock Paper Scissors",
+    category: "Classic",
+    icon: "✊",
+    description: "The classic hand game against the computer. First to 5 points wins the match.",
+    path: "/rps",
+  },
+  {
+    id: "tic-tac-toe",
+    title: "Tic-Tac-Toe",
+    category: "Strategy",
+    icon: "⭕",
+    description: "Get three in a row. Play against a friend on the same device, or challenge the computer.",
+    path: "/tic-tac-toe",
+  },
+  {
+    id: "memory",
+    title: "Memory Match",
+    category: "Puzzle",
+    icon: "🧠",
+    description: "Flip the cards and find all the matching pairs in as few moves as you can.",
+    path: "/memory",
+  },
+  {
+    id: "reaction",
+    title: "Reaction Time",
+    category: "Reflex",
+    icon: "⚡",
+    description: "Wait for the screen to turn green, then click as fast as you can. How quick are you?",
+    path: "/reaction",
+  },
+  {
+    id: "typing",
+    title: "Typing Speed",
+    category: "Skill",
+    icon: "⌨️",
+    description: "Type the sentence as quickly and accurately as you can and see your words per minute.",
+    path: "/typing",
+  },
+  {
+    id: "whack-a-mole",
+    title: "Whack-a-Mole",
+    category: "Reflex",
+    icon: "🔨",
+    description: "Moles pop up at random. Hit as many as you can before the 30-second timer runs out.",
+    path: "/whack-a-mole",
+  },
+]

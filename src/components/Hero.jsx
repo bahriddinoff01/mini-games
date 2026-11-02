@@ -1,65 +1,41 @@
-import { motion } from "framer-motion";
+import { motion } from "framer-motion"
+import { activities } from "../data/activities"
 
 const container = {
   hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.12,
-    },
-  },
-};
+  visible: { transition: { staggerChildren: 0.12 } },
+}
 
 const item = {
   hidden: { opacity: 0, y: 16 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: "easeOut" },
-  },
-};
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+}
 
 export default function Hero() {
   return (
-    <section className="relative flex flex-col items-center justify-center text-center px-6 py-24 md:py-32 overflow-hidden">
-      {/* background accent blob */}
-      <div className="absolute top-1/2 left-1/2 w-125 h-125 bg-purple-400/20 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 -z-10" />
+    <section className="relative isolate overflow-hidden px-4 py-20 text-center sm:px-6 md:py-28">
+      {/* background accent blobs */}
+      <div className="absolute left-1/2 top-1/2 -z-10 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-400/25 blur-3xl sm:h-125 sm:w-125" />
+      <div className="absolute right-0 top-0 -z-10 h-48 w-48 rounded-full bg-brand-200/40 blur-3xl" />
 
-      <motion.div
-        variants={container}
-        initial="hidden"
-        animate="visible"
-        className="max-w-2xl mx-auto"
-      >
-        <motion.span
-          variants={item}
-          className="inline-block text-sm uppercase tracking-widest text-gray-500 mb-4"
-        >
-          Personal Project
+      <motion.div variants={container} initial="hidden" animate="visible" className="mx-auto max-w-2xl">
+        <motion.span variants={item} className="chip mb-5">
+          {activities.length} games · free · no sign-up
         </motion.span>
 
-        <motion.h1
-          variants={item}
-          className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
-        >
-          A little arcade of mini activities
+        <motion.h1 variants={item} className="mb-5 text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">
+          A little arcade of <span className="text-brand-600">mini games</span>
         </motion.h1>
 
-        <motion.p
-          variants={item}
-          className="text-gray-600 text-lg mb-8"
-        >
-          A growing collection of small interactive projects — to-do lists,
-          quick games, and other tiny tools — built one at a time.
+        <motion.p variants={item} className="mb-8 text-lg text-slate-600">
+          Quick puzzles, reflex tests and classic games — plus a handy to-do list. Each one takes less
+          than a minute to start.
         </motion.p>
 
-        <motion.a
-          variants={item}
-          href="#activities"
-          className="inline-block px-6 py-3 border rounded-md bg-gray-900 text-white font-medium hover:scale-105 active:scale-90 duration-200 hover:bg-white hover:text-black transition-all"
-        >
-          Explore Activities
-        </motion.a>
+        <motion.div variants={item} className="flex flex-col justify-center gap-3 sm:flex-row">
+          <a href="#games" className="btn-primary">Explore games</a>
+        </motion.div>
       </motion.div>
     </section>
-  );
+  )
 }
